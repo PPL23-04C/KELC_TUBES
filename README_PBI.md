@@ -2,8 +2,8 @@
 
 Dokumen ini memetakan Product Backlog Item (PBI) ke file yang digunakan pada aplikasi WattCare.
 
-| PBI | Ringkas | File Terkait |
-| --- | --- | --- |
+| PBI    | Ringkas | File Terkait |
+| ---    | --- | --- |
 | PBI-01 | Sidebar navigation | resources/views/partials/sidebar.blade.php, resources/views/layouts/app.blade.php, routes/web.php |
 | PBI-02 | Alert lonjakan konsumsi | app/Services/AlertService.php, app/Http/Controllers/DashboardController.php, resources/views/dashboard/index.blade.php, config/constants.php |
 | PBI-03 | Ringkasan energi | app/Http/Controllers/DashboardController.php, resources/views/dashboard/index.blade.php |
