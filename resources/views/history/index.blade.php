@@ -1,28 +1,56 @@
-<?php
+@extends('layouts.app')
 
-namespace App\Http\Controllers;
+@section('title', 'Riwayat')
+@section('page-title', 'Riwayat Analisis')
 
-use App\Models\MonitoringLog;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
+@section('content')
+    <div class="form-card" style="margin-bottom: 20px;">
+        <form method="GET" action="{{ route('history.index') }}" 
+              style="display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); align-items: end;">
+            
+            <div class="form-group">
+                <label for="start_date">Dari</label>
+                <input id="start_date" type="date" name="start_date" value="{{ request('start_date') }}">
+            </div>
 
-class HistoryController extends Controller
-{
-    public function index(Request $request): View
-    {
-        $query = MonitoringLog::with(['device', 'billing', 'co2Impact'])
-            ->where('user_id', auth()->id());
+            <div class="form-group">
+                <label for="end_date">Sampai</label>
+                <input id="end_date" type="date" name="end_date" value="{{ request('end_date') }}">
+            </div>
 
-        if ($request->filled('start_date')) {
-            $query->whereDate('tanggal', '>=', $request->input('start_date'));
-        }
+            <button class="btn" type="submit">Filter</button>
 
-        if ($request->filled('end_date')) {
-            $query->whereDate('tanggal', '<=', $request->input('end_date'));
-        }
+        </form>
+    </div>
 
-        $logs = $query->orderByDesc('tanggal')->get();
-
-        return view('history.index', compact('logs'));
-    }
-}
+    <div class="card">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Perangkat</th>
+                    <th>Jam</th>
+                    <th>Total kWh</th>
+                    <th>Estimasi Biaya</th>
+                    <th>Emisi CO2</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($logs as $log)
+                    <tr>
+                        <td>{{ $log->tanggal->format('d M Y') }}</td>
+                        <td>{{ $log->device?->nama_device }}</td>
+                        <td>{{ number_format($log->jam_pemakaian, 2) }}</td>
+                        <td>{{ number_format($log->total_kwh, 2) }} kWh</td>
+                        <td>Rp {{ number_format(optional($log->billing)->estimasi_biaya ?? 0, 2, ',', '.') }}</td>
+                        <td>{{ number_format(optional($log->co2Impact)->emisi_co2 ?? 0, 2) }} kg</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="6">Belum ada data.</td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+@endsection
