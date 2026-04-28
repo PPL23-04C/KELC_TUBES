@@ -3,18 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\MonitoringLog;
-use App\Services\AlertService;
-use App\Services\RecommendationService;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __construct(
-        private AlertService $alertService,
-        private RecommendationService $recommendationService
-    ) {
-    }
+
 
     public function index(): View
     {
@@ -70,9 +64,6 @@ class DashboardController extends Controller
             ->whereBetween('tanggal', [$previousStart, $previousEnd])
             ->sum('total_kwh');
 
-        $alert = $this->alertService->checkDailyLimit((float) $todayKwh, (int) $user->daya_va);
-
-        $tips = $this->recommendationService->buildRecommendations((float) $weekKwh, (float) ($previousTotal / 4));
 
         return view('dashboard.index', [
             'totalKwh' => $totalKwh,
