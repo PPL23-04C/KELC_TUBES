@@ -20,6 +20,12 @@
 
             <button class="btn" type="submit">Filter</button>
 
+            @if(request('start_date') || request('end_date'))
+                <a href="{{ route('history.index') }}" class="btn" style="background: #ccc;">
+                    Reset
+                </a>
+            @endif
+
         </form>
     </div>
 
