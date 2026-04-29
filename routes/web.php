@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
+    Route::get('/recommendations', [RecommendationController::class, 'index'])->name('recommendations.index');
 });
 
 Route::get('/', function () {
