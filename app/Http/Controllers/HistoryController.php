@@ -14,16 +14,14 @@ class HistoryController extends Controller
             ->where('user_id', auth()->id());
 
         if ($request->filled('start_date')) {
-            $query->whereDate('tanggal', '>=', $request->start_date);
+            $query->whereDate('tanggal', '>=', $request->input('start_date'));
         }
 
         if ($request->filled('end_date')) {
-            $query->whereDate('tanggal', '<=', $request->end_date);
+            $query->whereDate('tanggal', '<=', $request->input('end_date'));
         }
 
-        $logs = $query->orderByDesc('tanggal')
-                      ->paginate(10)
-                      ->withQueryString();
+        $logs = $query->orderByDesc('tanggal')->get();
 
         return view('history.index', compact('logs'));
     }
