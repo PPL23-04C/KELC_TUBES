@@ -25,7 +25,6 @@ class RegisterController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'daya_va' => $data['daya_va'],
         ]);
 
         Auth::login($user);

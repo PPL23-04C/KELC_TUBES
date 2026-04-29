@@ -21,10 +21,5 @@ class HistoryController extends Controller
             $query->whereDate('tanggal', '<=', $request->end_date);
         }
 
-        $logs = $query->orderByDesc('tanggal')
-                      ->paginate(10)
-                      ->withQueryString();
-
-        return view('history.index', compact('logs'));
     }
 }
