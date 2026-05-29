@@ -13,15 +13,19 @@ class HistoryController extends Controller
         $query = MonitoringLog::with(['device', 'billing', 'co2Impact'])
             ->where('user_id', auth()->id());
 
+        // Filter tanggal
         if ($request->filled('start_date')) {
-            $query->whereDate('tanggal', '>=', $request->input('start_date'));
+            $query->whereDate('tanggal', '>=', $request->start_date);
         }
 
         if ($request->filled('end_date')) {
-            $query->whereDate('tanggal', '<=', $request->input('end_date'));
+            $query->whereDate('tanggal', '<=', $request->end_date);
         }
 
-        $logs = $query->orderByDesc('tanggal')->get();
+        // Pagination + tetap bawa query
+        $logs = $query->orderByDesc('tanggal')
+                      ->paginate(10)
+                      ->withQueryString();
 
         return view('history.index', compact('logs'));
     }

@@ -25,6 +25,7 @@ class User extends Authenticatable
         'email',
         'password',
         'daya_va',
+        'role',
     ];
 
     /**
@@ -67,9 +68,7 @@ class User extends Authenticatable
 
     public function getTariffPerKwhAttribute(): float
     {
-        $tariffs = config('constants.tariffs');
         $dayaVa = (int) $this->daya_va;
-
-        return isset($tariffs[$dayaVa]) ? (float) $tariffs[$dayaVa] : (float) $tariffs['default'];
+        return (float) getTarifListrik($dayaVa);
     }
 }
