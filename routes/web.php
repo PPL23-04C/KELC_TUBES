@@ -19,7 +19,9 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
-
+    
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('devices', DeviceController::class)->except(['show']);
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
     Route::get('/recommendations', [RecommendationController::class, 'index'])->name('recommendations.index');
 });

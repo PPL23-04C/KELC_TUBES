@@ -73,7 +73,7 @@ class DashboardController extends Controller
         $alert = $this->alertService->checkDailyLimit((float) $todayKwh, (int) $user->daya_va);
 
         $tips = $this->recommendationService->buildRecommendations((float) $weekKwh, (float) ($previousTotal / 4));
-        
+
         return view('dashboard.index', [
             'totalKwh' => $totalKwh,
             'totalCost' => $totalCost,
