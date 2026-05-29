@@ -5,10 +5,7 @@ Dokumen ini memetakan Product Backlog Item (PBI) ke file yang digunakan pada apl
 | PBI    | Ringkas | File Terkait |
 | ---    | --- | --- |
 | PBI-01 | Sidebar navigation | resources/views/partials/sidebar.blade.php, resources/views/layouts/app.blade.php, routes/web.php |
-| PBI-02 | Alert lonjakan konsumsi | app/Services/AlertService.php, app/Http/Controllers/DashboardController.php, resources/views/dashboard/index.blade.php, config/constants.php |
-| PBI-03 | Ringkasan energi | app/Http/Controllers/DashboardController.php, resources/views/dashboard/index.blade.php |
 | PBI-04 | Monitoring emisi CO2 | app/Services/CalculatorService.php, app/Http/Controllers/AnalysisController.php, app/Http/Controllers/DashboardController.php, resources/views/dashboard/index.blade.php |
-| PBI-05 | Grafik konsumsi harian | app/Http/Controllers/DashboardController.php, resources/views/dashboard/index.blade.php, resources/js/app.js |
 | PBI-06 | Input tanggal | app/Http/Requests/AnalysisRequest.php, app/Http/Controllers/AnalysisController.php, resources/views/analysis/input.blade.php |
 | PBI-07 | Input daya listrik (VA) | app/Http/Requests/RegisterRequest.php, app/Http/Requests/ProfileUpdateRequest.php, resources/views/auth/register.blade.php, resources/views/profile/edit.blade.php, app/Models/User.php |
 | PBI-08 | Tambah data elektronik | app/Http/Controllers/DeviceController.php, app/Http/Requests/DeviceRequest.php, resources/views/devices/create.blade.php |
