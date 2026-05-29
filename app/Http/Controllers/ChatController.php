@@ -88,3 +88,25 @@ class ChatController extends Controller
                     }
 
                     $replyText .= "\n**Total Konsumsi Listrik Estimasi:** **" . number_format($totalKwh, 2, ',', '.') . " kWh**";
+
+                    return response()->json([
+                        'reply' => nl2br(preg_replace('/\*\*(.*?)\*\*/', '<b>$1</b>', e($replyText)))
+                    ]);
+                } else {
+                    return response()->json([
+                        'reply' => 'Maaf, saya hanya dapat memproses informasi mengenai konsumsi alat elektronik. Coba sebutkan nama alat, daya (watt), dan durasi (jam).'
+                    ]);
+                }
+
+            } else {
+                return response()->json([
+                    'reply' => 'Terjadi kesalahan saat menghubungi API Gemini. ' . $response->body()
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'reply' => 'Terjadi kesalahan sistem: ' . $e->getMessage()
+            ]);
+        }
+    }
+}
