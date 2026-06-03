@@ -6,6 +6,7 @@ use App\Http\Controllers\AnalysisController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\HistoryController;
+use App\Http\Controllers\LeaderboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RecommendationController;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('devices', DeviceController::class)->except(['show']);
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
     Route::get('/recommendations', [RecommendationController::class, 'index'])->name('recommendations.index');
+    Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboards.index');
 });
 
 Route::get('/', function () {
