@@ -38,14 +38,14 @@ class LeaderboardController extends Controller
             ->values()
             ->map(function ($entry, $index) {
                 return [
-                    'rank'      => $index + 1,
-                    'user_id'   => (int) $entry->user_id,
-                    'user'      => $entry->user ? [
-                        'name'    => $entry->user->name,
+                    'rank' => $index + 1,
+                    'user_id' => (int) $entry->user_id,
+                    'user' => $entry->user ? [
+                        'name' => $entry->user->name,
                         'daya_va' => $entry->user->daya_va,
                     ] : [],
                     'total_kwh' => round((float) $entry->total_kwh, 2),
-                    'label'     => $entry->user?->daya_va ? $entry->user->daya_va . ' VA' : 'VA belum diatur',
+                    'label' => $entry->user?->daya_va ? $entry->user->daya_va . ' VA' : 'VA belum diatur',
                 ];
             });
 
@@ -53,7 +53,7 @@ class LeaderboardController extends Controller
 
         $currentUserTotal = $currentUserEntry
             ? [
-                'rank'      => $monthlyLogs->search(fn ($entry) => (int) $entry->user_id === auth()->id()) + 1,
+                'rank' => $monthlyLogs->search(fn ($entry) => (int) $entry->user_id === auth()->id()) + 1,
                 'total_kwh' => round((float) $currentUserEntry->total_kwh, 2),
             ]
             : null;
@@ -75,7 +75,7 @@ class LeaderboardController extends Controller
             ->orderBy('daya_va')
             ->pluck('daya_va');
 
-        $monthLabel      = Carbon::createFromFormat('Y-m', $selectedMonth)->locale('id')->translatedFormat('F Y');
+        $monthLabel = Carbon::createFromFormat('Y-m', $selectedMonth)->locale('id')->translatedFormat('F Y');
         $selectedVaLabel = $selectedVa === 'all' ? 'Semua VA' : $selectedVa . ' VA';
 
         return view('leaderboards.index', compact(
