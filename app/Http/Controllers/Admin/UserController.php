@@ -27,6 +27,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6|confirmed',
             'role' => 'required|in:admin,user',
+            'daya_va' => 'required_if:role,user|in:450,900,1300,2200,3500',
         ]);
 
         $data['password'] = Hash::make($data['password']);
@@ -48,6 +49,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email,'.$user->id,
             'password' => 'nullable|min:6|confirmed',
             'role' => 'required|in:admin,user',
+            'daya_va' => 'required_if:role,user|in:450,900,1300,2200,3500',
         ]);
 
         if (! empty($data['password'])) {
