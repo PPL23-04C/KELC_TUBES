@@ -138,7 +138,27 @@
             ][$color];
         @endphp
         
- 
+        <div x-data="{
+                open: {{ $i === 0 ? 'true' : 'false' }},
+                simulatorOpen: false,
+                currentHours: {{ $device['avg_jam'] }},
+                simulatedHours: {{ $device['avg_jam'] }},
+                watt: {{ $device['daya_watt'] }},
+                tariff: {{ $tariff }},
+                co2Factor: {{ $co2Factor }},
+                currentKwh() { return (this.watt * this.currentHours * 30) / 1000; },
+                simulatedKwh() { return (this.watt * this.simulatedHours * 30) / 1000; },
+                currentCost() { return this.currentKwh() * this.tariff; },
+                simulatedCost() { return this.simulatedKwh() * this.tariff; },
+                currentCo2() { return this.currentKwh() * this.co2Factor; },
+                simulatedCo2() { return this.simulatedKwh() * this.co2Factor; },
+                diffKwh() { return this.currentKwh() - this.simulatedKwh(); },
+                diffCost() { return this.currentCost() - this.simulatedCost(); },
+                diffCo2() { return this.currentCo2() - this.simulatedCo2(); },
+                percentChange() { return this.currentKwh() ? (this.diffKwh() / this.currentKwh()) * 100 : 0; },
+                formatNumber(value, decimals = 1) { return new Intl.NumberFormat('id-ID', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value); },
+                formatCurrency(value) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(value); },
+            }" class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:border-slate-300 transition-colors">
             <!-- Header -->
             <button @click="open = !open" class="w-full flex items-center gap-4 p-4 md:p-5 text-left bg-white hover:bg-slate-50 transition-colors focus:outline-none">
                 <div class="w-12 h-12 rounded-lg flex items-center justify-center shrink-0 border {{ $bgClass }}">
@@ -180,6 +200,90 @@
                         </div>
                     </div>
 
+                    <!-- Simulasi Penghematan -->
+                    <div class="mb-6">
+                        <button
+                            class="btn btn-outline-primary btn-sm"
+                            type="button"
+                            @click="simulatorOpen = !simulatorOpen"
+                            :aria-expanded="simulatorOpen.toString()"
+                            aria-controls="simulator-{{ $i }}"
+                        >
+                            <i class="bi bi-graph-up me-2"></i>
+                            Simulasi Penghematan
+                        </button>
+
+                        <div x-show="simulatorOpen" x-collapse x-cloak class="mt-4" id="simulator-{{ $i }}">
+                            <div class="card card-body border-0 shadow-sm p-4">
+                                <div class="row gy-3">
+                                    <div class="col-12 col-md-4">
+                                        <div class="small text-muted mb-2">Penggunaan saat ini</div>
+                                        <div class="h5 mb-0" x-text="formatNumber(currentHours, 1) + ' jam/hari'"></div>
+                                    </div>
+                                    <div class="col-12 col-md-8">
+                                        <div class="small text-muted mb-2">Simulasikan menjadi</div>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <input
+                                                type="range"
+                                                class="form-range flex-grow-1"
+                                                min="0"
+                                                :max="currentHours"
+                                                step="0.5"
+                                                x-model.number="simulatedHours"
+                                            >
+                                            <div class="fw-semibold text-dark" x-text="formatNumber(simulatedHours, 1) + ' jam'"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-2 mt-4">
+                                    <div class="col">
+                                        <div class="card border-success-subtle bg-success bg-opacity-10 h-100">
+                                            <div class="card-body p-2 d-flex flex-column justify-content-center">
+                                                <div class="text-muted small mb-1">Hemat kWh/bulan</div>
+                                                <div class="text-success fw-bold lh-1" style="font-size: 0.95rem; word-break: break-word;" x-text="formatNumber(diffKwh(), 1) + ' kWh'"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="card border-success-subtle bg-success bg-opacity-10 h-100">
+                                            <div class="card-body p-2 d-flex flex-column justify-content-center">
+                                                <div class="text-muted small mb-1">Hemat biaya/bulan</div>
+                                                <div class="text-success fw-bold lh-1" style="font-size: 0.85rem; word-break: break-word; min-height: 1.5rem;" x-text="formatCurrency(diffCost())"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="card border-success-subtle bg-success bg-opacity-10 h-100">
+                                            <div class="card-body p-2 d-flex flex-column justify-content-center">
+                                                <div class="text-muted small mb-1">CO₂ berkurang</div>
+                                                <div class="text-success fw-bold lh-1" style="font-size: 0.95rem; word-break: break-word;" x-text="formatNumber(diffCo2(), 1) + ' kg'"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="card border-success-subtle bg-success bg-opacity-10 h-100">
+                                            <div class="card-body p-2 d-flex flex-column justify-content-center">
+                                                <div class="text-muted small mb-1">Penurunan konsumsi</div>
+                                                <div class="text-success fw-bold lh-1" style="font-size: 0.95rem; word-break: break-word;" x-text="formatNumber(percentChange(), 1) + '%' "></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <div class="mb-2 small text-muted">Sebelum</div>
+                                    <div class="progress" style="height: .75rem;">
+                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                                    </div>
+                                    <div class="mt-3 mb-2 small text-muted">Sesudah</div>
+                                    <div class="progress" style="height: .75rem;">
+                                        <div class="progress-bar bg-success" role="progressbar" :style="`width: ${Math.max(0, Math.min(100, 100 - percentChange()))}%`" aria-valuemin="0" aria-valuemax="100" x-text="formatNumber(Math.max(0, 100 - percentChange()), 1) + '%'" ></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Tips List -->
                     <ul class="space-y-3">
