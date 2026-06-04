@@ -12,6 +12,44 @@
         </div>
     </div>
 
+    <!-- Filter Section -->
+    <div class="bg-white rounded-3xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 mb-8">
+        <form method="GET" action="{{ route('leaderboards.index') }}" class="flex flex-col sm:flex-row sm:items-end gap-4">
+            <div class="flex-1 space-y-2">
+                <label for="month" class="block text-sm font-semibold text-slate-700">Pilih Bulan</label>
+                <div class="relative">
+                    <select id="month" name="month" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl pl-4 pr-4 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium cursor-pointer">
+                        @foreach($availableMonths as $month)
+                            <option value="{{ $month }}" {{ $selectedMonth === $month ? 'selected' : '' }}>
+                                {{ \Carbon\Carbon::createFromFormat('Y-m', $month)->locale('id')->translatedFormat('F Y') }}
+                            </option>
+                        @endforeach
+                    </select>
+                    
+                </div>
+            </div>
+
+            <div class="flex-1 space-y-2">
+                <label for="daya_va" class="block text-sm font-semibold text-slate-700">Jenis VA</label>
+                <div class="relative">
+                    <select id="daya_va" name="daya_va" class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl pl-4 pr-4 py-2.5 appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium cursor-pointer">
+                        <option value="all" {{ $selectedVa === 'all' ? 'selected' : '' }}>Semua VA</option>
+                        @foreach($availableVas as $va)
+                            <option value="{{ $va }}" {{ (string) $selectedVa === (string) $va ? 'selected' : '' }}>{{ $va }} VA</option>
+                        @endforeach
+                    </select>
+                    
+                </div>
+            </div>
+
+            <button type="submit" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2">
+                <i data-lucide="filter" class="w-4 h-4"></i>
+                Tampilkan
+            </button>
+        </form>
+    </div>
+
+    <!-- Leaderboard Header & User Position -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
         <div>
             <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
@@ -40,13 +78,14 @@
         </div>
     </div>
 
+    <!-- Leaderboard Table -->
     @if($leaderboard->isEmpty())
         <div class="bg-slate-50 border border-slate-200 border-dashed rounded-3xl p-12 text-center">
             <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400 shadow-sm">
                 <i data-lucide="trophy" class="w-8 h-8"></i>
             </div>
             <h3 class="text-lg font-bold text-slate-900 mb-1">Belum Ada Data</h3>
-            <p class="text-sm text-slate-500 max-w-sm mx-auto">Belum ada data konsumsi pada bulan ini.</p>
+            <p class="text-sm text-slate-500 max-w-sm mx-auto">Belum ada data konsumsi pada bulan ini untuk filter yang Anda pilih.</p>
         </div>
     @else
         <div class="bg-white rounded-3xl overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100">
