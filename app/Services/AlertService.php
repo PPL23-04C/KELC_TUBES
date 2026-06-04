@@ -27,11 +27,17 @@ class AlertService
         $limitFormatted = number_format($limit, 1, '.', '');
 
         $template = $messages[$level] ?? 'Penggunaan listrik hari ini: {pemakaian} kWh.';
+        $message = str_replace(['{pemakaian}', '{batas}'], [$formatted, $limitFormatted], $template);
+
+        if ($level === 'boros') {
+            $recommendationUrl = route('recommendations.index');
+            $message .= " Silakan cek <a href=\"{$recommendationUrl}\">rekomendasi</a> untuk menghemat penggunaan listrik Anda.";
+        }
 
         return [
             'has_spike' => $level === 'boros',
             'level' => $level,
-            'message' => str_replace(['{pemakaian}', '{batas}'], [$formatted, $limitFormatted], $template),
+            'message' => $message,
         ];
     }
 
