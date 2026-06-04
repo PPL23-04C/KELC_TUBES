@@ -18,7 +18,7 @@
         <div class="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100">
             <form method="POST" action="{{ route('analysis.store') }}" class="space-y-6">
                 @csrf
-                
+
                 <div class="space-y-2">
                     <label for="device_id" class="block text-sm font-semibold text-slate-700">Pilih Perangkat</label>
                     <div class="relative">
@@ -31,7 +31,7 @@
                                 </option>
                             @endforeach
                         </select>
-                        
+
                     </div>
                 </div>
 
@@ -46,7 +46,7 @@
                             <span id="tanggal_help" class="sr-only">Tanggal pencatatan</span>
                         </div>
                     </div>
-                    
+
                     <div class="space-y-2">
                         <label for="jam_pemakaian" class="block text-sm font-semibold text-slate-700">Durasi (Jam)</label>
                         <div class="relative">
@@ -55,7 +55,7 @@
                                    title="Durasi pemakaian dalam jam"
                                    class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all placeholder:text-slate-400">
                             <span id="jam_help" class="sr-only">Satuan: jam</span>
-                            
+
                         </div>
                     </div>
                 </div>
