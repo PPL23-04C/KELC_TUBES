@@ -51,8 +51,10 @@
                 type="password"
                 name="password"
                 placeholder="Masukkan password"
+                minlength="8"
                 required
             >
+            <small id="password-warn" style="color: #fca5a5; font-size: 12px; display: none; margin-top: 4px;">⚠️ Password harus minimal 8 karakter</small>
         </div>
 
         <div class="auth-form-group">
@@ -62,6 +64,7 @@
                 type="password"
                 name="password_confirmation"
                 placeholder="Ulangi password"
+                minlength="8"
                 required
             >
         </div>
@@ -70,6 +73,21 @@
             🚀 Buat Akun
         </button>
     </form>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const passwordWarn = document.getElementById('password-warn');
+            
+            passwordInput.addEventListener('input', function() {
+                if (passwordInput.value.length > 0 && passwordInput.value.length < 8) {
+                    passwordWarn.style.display = 'block';
+                } else {
+                    passwordWarn.style.display = 'none';
+                }
+            });
+        });
+    </script>
 @endsection
 
 @section('auth-footer')

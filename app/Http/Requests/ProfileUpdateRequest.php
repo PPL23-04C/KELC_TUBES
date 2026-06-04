@@ -19,6 +19,7 @@ class ProfileUpdateRequest extends FormRequest
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:100', 'unique:users,email,' . $userId],
             'daya_va' => ['required', 'integer', 'min:450'],
+            'target_hemat' => ['nullable', 'integer', 'min:1', 'max:50'],
             'password' => ['nullable', 'string', 'min:6', 'confirmed'],
         ];
     }
