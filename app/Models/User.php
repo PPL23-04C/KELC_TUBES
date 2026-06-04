@@ -26,6 +26,7 @@ class User extends Authenticatable
         'password',
         'daya_va',
         'role',
+        'target_hemat',
     ];
 
     /**
@@ -70,5 +71,23 @@ class User extends Authenticatable
     {
         $dayaVa = (int) $this->daya_va;
         return (float) getTarifListrik($dayaVa);
+    }
+
+    public function getBatasBorosKwh(): float
+    {
+        $thresholds = config('constants.daily_usage_thresholds', []);
+        $dayaVa = (int) $this->daya_va;
+        $resolvedTier = null;
+        foreach ($thresholds as $tier) {
+            if ($dayaVa <= (int) $tier['max_va']) {
+                $resolvedTier = $tier;
+                break;
+            }
+        }
+        if (!$resolvedTier) {
+            $resolvedTier = end($thresholds);
+        }
+        $sedangLimit = isset($resolvedTier['sedang']) ? (float) $resolvedTier['sedang'] : 7.0;
+        return $sedangLimit * 30;
     }
 }
