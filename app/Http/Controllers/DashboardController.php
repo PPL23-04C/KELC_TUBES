@@ -74,6 +74,21 @@ class DashboardController extends Controller
 
         $tips = $this->recommendationService->buildRecommendations((float) $weekKwh, (float) ($previousTotal / 4));
 
+        $monthStart = Carbon::today()->startOfMonth();
+        $monthEnd = Carbon::today()->endOfMonth();
+        $monthUsage = (float) MonitoringLog::where('user_id', $user->id)
+            ->whereBetween('tanggal', [$monthStart, $monthEnd])
+            ->sum('total_kwh');
+
+        $batasBoros = $user->getBatasBorosKwh();
+        $targetKwh = null;
+        $savingStatus = null;
+
+        if ($user->target_hemat !== null) {
+            $targetKwh = $batasBoros * (1 - ($user->target_hemat / 100));
+            $savingStatus = $monthUsage <= $targetKwh ? 'tercapai' : 'melebihi';
+        }
+
         return view('dashboard.index', [
             'totalKwh' => $totalKwh,
             'totalCost' => $totalCost,
@@ -83,6 +98,10 @@ class DashboardController extends Controller
             'chartData' => $chartData,
             'alert' => $alert,
             'tips' => $tips,
+            'monthUsage' => $monthUsage,
+            'batasBoros' => $batasBoros,
+            'targetKwh' => $targetKwh,
+            'savingStatus' => $savingStatus,
         ]);
     }
 }
