@@ -12,42 +12,22 @@ class SavingTargetController extends Controller
 {
     public function index(): View
     {
-        $user       = auth()->user();
-        $now        = Carbon::now();
+        $user = auth()->user();
+        $now = Carbon::now();
         $monthStart = $now->copy()->startOfMonth();
-        $monthEnd   = $now->copy()->endOfMonth();
+        $monthEnd = $now->copy()->endOfMonth();
 
         $monthUsage = (float) MonitoringLog::where('user_id', $user->id)
             ->whereBetween('tanggal', [$monthStart, $monthEnd])
             ->sum('total_kwh');
 
-        $batasBoros   = $user->getBatasBorosKwh();
-        $targetKwh    = null;
+        $batasBoros = $user->getBatasBorosKwh();
+        $targetKwh = null;
         $savingStatus = null;
-        $progressData = null;
 
         if ($user->target_hemat !== null) {
-            $targetKwh    = $batasBoros * (1 - ($user->target_hemat / 100));
+            $targetKwh = $batasBoros * (1 - ($user->target_hemat / 100));
             $savingStatus = $monthUsage <= $targetKwh ? 'tercapai' : 'melebihi';
-
-            $realisasiPct = $targetKwh > 0
-                ? min(round(($monthUsage / $targetKwh) * 100, 1), 150)
-                : 0;
-
-            $sisaKwh = $targetKwh - $monthUsage;
-
-            $barColor = match (true) {
-                $realisasiPct <= 60  => 'success',
-                $realisasiPct <= 85  => 'warning',
-                default              => 'danger',
-            };
-
-            $progressData = [
-                'realisasi_pct' => $realisasiPct,
-                'sisa_kwh'      => $sisaKwh,
-                'bar_color'     => $barColor,
-                'target_kwh'    => $targetKwh,
-            ];
         }
 
         return view('saving-target.index', compact(
@@ -55,8 +35,7 @@ class SavingTargetController extends Controller
             'monthUsage',
             'batasBoros',
             'targetKwh',
-            'savingStatus',
-            'progressData'
+            'savingStatus'
         ));
     }
 
@@ -66,17 +45,28 @@ class SavingTargetController extends Controller
             'target_hemat' => ['required', 'integer', 'min:1', 'max:50'],
         ], [
             'target_hemat.required' => 'Persentase target penghematan wajib diisi.',
-            'target_hemat.integer'  => 'Persentase target penghematan harus berupa angka bulat.',
-            'target_hemat.min'      => 'Target penghematan minimal adalah 1%.',
-            'target_hemat.max'      => 'Target penghematan maksimal adalah 50%.',
+            'target_hemat.integer' => 'Persentase target penghematan harus berupa angka bulat.',
+            'target_hemat.min' => 'Target penghematan minimal adalah 1%.',
+            'target_hemat.max' => 'Target penghematan maksimal adalah 50%.',
         ]);
 
         auth()->user()->update([
-            'target_hemat' => $data['target_hemat'],
+            'target_hemat' => $data['target_hemat']
         ]);
 
         return redirect()
             ->route('saving-target.index')
             ->with('success', 'Target penghematan listrik bulanan berhasil disimpan.');
+    }
+
+    public function destroy(): RedirectResponse
+    {
+        auth()->user()->update([
+            'target_hemat' => null
+        ]);
+
+        return redirect()
+            ->route('saving-target.index')
+            ->with('success', 'Target penghematan listrik bulanan berhasil dinonaktifkan.');
     }
 }
