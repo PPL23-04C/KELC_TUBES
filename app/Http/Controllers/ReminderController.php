@@ -46,5 +46,26 @@ class ReminderController extends Controller
             'jam_pemakaian' => $request->input('jam_pemakaian'),
             'total_kwh' => $kwh,
         ]);
-   }
+
+        $tariff = auth()->user()->tariff_per_kwh;
+        $cost = $this->calculatorService->calculateCost($kwh, $tariff);
+        $co2 = $this->calculatorService->calculateCo2($kwh);
+
+        Billing::create([
+            'log_id' => $log->id,
+            'estimasi_biaya' => $cost,
+            'tarif_per_kwh' => $tariff,
+        ]);
+
+        CO2Impact::create([
+            'log_id' => $log->id,
+            'emisi_co2' => $co2,
+            'faktor_emisi' => (float) config('constants.co2_factor'),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Penggunaan alat ' . $device->nama_device . ' selama ' . $request->input('jam_pemakaian') . ' jam telah dicatat ke riwayat.'
+        ]);
+    }
 }
