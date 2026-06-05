@@ -4,7 +4,7 @@
 @section('page-title', 'Target Penghematan Listrik')
 
 @section('content')
-<div class="grid grid-cols-1 gap-8 mb-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
     {{-- ===== KARTU KIRI: FORM / HASIL TARGET ===== --}}
     @if($user->target_hemat === null)
         <div class="bg-white rounded-3xl p-6 md:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-100 relative overflow-hidden">
@@ -105,6 +105,87 @@
                     Nonaktifkan Fitur Penghematan
                 </button>
             </form>
+        </div>
+    @endif
+
+    {{-- ===== KARTU KANAN: STATUS KONSUMSI / REKOMENDASI ===== --}}
+    @if($user->target_hemat !== null)
+        <div class="bg-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden flex flex-col justify-between shadow-[0_4px_20px_rgb(0,0,0,0.08)]">
+            <div class="absolute -bottom-8 -right-4 text-slate-800/30">
+                <i data-lucide="zap" class="w-48 h-48"></i>
+            </div>
+            
+            <div class="relative z-10">
+                <h2 class="text-xl font-bold mb-3">Pantau Pemakaian Energi</h2>
+                <p class="text-sm text-slate-300 leading-relaxed mb-6">
+                    Berikut adalah gambaran realisasi konsumsi listrik rumah Anda pada bulan berjalan terhadap target penghematan maksimal.
+                </p>
+
+                <div class="mb-6">
+                    <div class="flex justify-between text-sm font-medium text-slate-300 mb-2">
+                        <span>Penggunaan Bulan Ini</span>
+                        <span>{{ number_format($monthUsage, 1) }} / {{ round($targetKwh) }} kWh</span>
+                    </div>
+                    <div class="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        @php
+                            $percentage = $targetKwh > 0 ? min(($monthUsage / $targetKwh) * 100, 100) : 0;
+                            $barClass = 'bg-emerald-500';
+                            if ($percentage > 100) {
+                                $barClass = 'bg-red-500';
+                            } elseif ($percentage > 80) {
+                                $barClass = 'bg-amber-500';
+                            }
+                        @endphp
+                        <div class="h-full rounded-full transition-all duration-1000 ease-out {{ $barClass }}" style="width: {{ $percentage }}%;"></div>
+                    </div>
+                    <div class="text-right text-xs text-slate-400 mt-2 font-medium">
+                        Persentase Target: {{ round($percentage) }}%
+                    </div>
+                </div>
+
+                @if($savingStatus === 'tercapai')
+                    <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 mb-8">
+                        <p class="text-sm text-emerald-200 leading-relaxed">
+                            <span class="font-bold text-emerald-400">💡 Hebat!</span> Konsumsi listrik Anda sejauh ini masih berada di bawah target maksimal pemakaian Anda ({{ round($targetKwh) }} kWh). Pertahankan kinerja ini untuk memastikan target penghematan tercapai di akhir bulan.
+                        </p>
+                    </div>
+                @else
+                    <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-8">
+                        <p class="text-sm text-red-200 leading-relaxed">
+                            <span class="font-bold text-red-400">⚠️ Peringatan!</span> Pemakaian listrik Anda bulan ini telah melebihi batas target penghematan Anda ({{ round($targetKwh) }} kWh). Harap kurangi penggunaan peralatan elektronik yang tidak mendesak sesegera mungkin.
+                        </p>
+                    </div>
+                @endif
+            </div>
+
+            <a href="{{ route('recommendations.index') }}" class="relative z-10 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all shadow-lg shadow-blue-900/20 self-start">
+                Lihat Rekomendasi Hemat Listrik
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
+        </div>
+    @else
+        <div class="bg-gradient-to-br from-blue-900 to-blue-800 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden flex flex-col justify-between shadow-[0_4px_20px_rgb(0,0,0,0.08)]">
+            <div class="absolute -bottom-8 -right-4 text-blue-950/20">
+                <i data-lucide="lightbulb" class="w-48 h-48"></i>
+            </div>
+            
+            <div class="relative z-10 mb-8">
+                <h2 class="text-xl font-bold mb-3">Mengapa Mengatur Target?</h2>
+                <div class="text-sm text-blue-100 leading-relaxed space-y-4">
+                    <p>Mengatur target penghematan membantu Anda:</p>
+                    <ul class="list-disc pl-5 space-y-2 marker:text-blue-400">
+                        <li>Mendapatkan batas pemakaian ideal secara personal.</li>
+                        <li>Memantau efisiensi energi bulanan secara visual melalui grafik.</li>
+                        <li>Mengontrol pengeluaran biaya listrik sebelum terjadi lonjakan.</li>
+                        <li>Mendukung kelestarian lingkungan dengan mengurangi emisi CO2.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <a href="{{ route('recommendations.index') }}" class="relative z-10 inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all self-start border border-white/10">
+                Baca Tips Efisiensi
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </a>
         </div>
     @endif
 </div>
