@@ -84,3 +84,324 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Notifikasi Timer Habis -->
+<div id="timer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);" class="bg-white p-8 rounded-3xl w-11/12 max-w-sm text-center shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-emerald-400"></div>
+        <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i data-lucide="bell-ringing" class="w-10 h-10 text-emerald-500"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">Waktu Habis!</h2>
+        <p class="text-slate-500 text-sm mb-6 leading-relaxed">
+            Pengingat untuk penggunaan alat <br>
+            <strong id="modal-device-name" class="text-slate-900 text-lg block mt-1"></strong> <br>
+            telah selesai.
+        </p>
+        <button type="button" id="btn-close-modal" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-emerald-600/20">
+            Oke, Mengerti
+        </button>
+    </div>
+</div>
+
+<!-- Audio Notifikasi -->
+<audio id="timerSound" preload="auto">
+    <source src="{{ asset('sounds/myinstants.mp3') }}" type="audio/mpeg">
+</audio>
+
+@endsection
+
+@stack('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('reminder-form');
+    const deviceSelect = document.getElementById('device_id');
+    const durationInput = document.getElementById('duration');
+    const unitSelect = document.getElementById('unit');
+    const timersContainer = document.getElementById('timers-container');
+    const emptyState = document.getElementById('empty-state');
+    
+    // Modal elements
+    const timerModal = document.getElementById('timer-modal');
+    const modalDeviceName = document.getElementById('modal-device-name');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+
+    let timers = [];
+    let globalInterval = null;
+    let modalQueue = [];
+
+    btnCloseModal.addEventListener('click', () => {
+        const sound = document.getElementById('timerSound');
+        sound.pause();
+        sound.currentTime = 0;
+        timerModal.style.display = 'none';
+        
+        // Show next modal if queued
+        if (modalQueue.length > 0) {
+            const nextDevice = modalQueue.shift();
+            setTimeout(() => {
+                showModal(nextDevice);
+            }, 300);
+        }
+    });
+
+    function showModal(deviceName) {
+        const sound = document.getElementById('timerSound');
+        if (timerModal.style.display === 'flex') {
+            modalQueue.push(deviceName);
+        } else {
+            modalDeviceName.innerText = deviceName;
+            timerModal.style.display = 'flex';
+            // Mainkan suara
+            sound.currentTime = 0;
+            sound.loop = true;
+            sound.play().catch(error => {
+                console.log('Autoplay dicegah browser:', error);
+            });
+            if(window.lucide) {
+                window.lucide.createIcons();
+            }
+        }
+    }
+
+    // Load from local storage
+    const savedState = localStorage.getItem('wattcare_timers_list');
+    if (savedState) {
+        timers = JSON.parse(savedState);
+        renderTimers();
+        startGlobalClock();
+    } else {
+        updateEmptyState();
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const duration = parseFloat(durationInput.value);
+        const unit = unitSelect.value;
+        const selectedDeviceId = deviceSelect.value;
+        const selectedDeviceName = deviceSelect.options[deviceSelect.selectedIndex].getAttribute('data-name');
+        
+        let seconds = 0;
+        let hoursForLog = 0;
+        
+        if (unit === 'minutes') {
+            seconds = duration * 60;
+            hoursForLog = duration / 60;
+        } else {
+            seconds = duration * 3600;
+            hoursForLog = duration;
+        }
+
+        const newTimer = {
+            id: 'timer_' + Date.now() + Math.random().toString(36).substr(2, 5),
+            deviceId: selectedDeviceId,
+            deviceName: selectedDeviceName,
+            endTime: Date.now() + (seconds * 1000),
+            hoursForLog: hoursForLog,
+            originalDuration: duration,
+            originalUnit: unit === 'minutes' ? 'Menit' : 'Jam',
+            isFinished: false,
+            notified: false
+        };
+        
+        timers.push(newTimer);
+        saveTimers();
+        renderTimers();
+        startGlobalClock();
+        
+        // Reset form
+        deviceSelect.value = '';
+        durationInput.value = '';
+    });
+
+    function saveTimers() {
+        localStorage.setItem('wattcare_timers_list', JSON.stringify(timers));
+    }
+
+    function removeTimer(id) {
+        timers = timers.filter(t => t.id !== id);
+        saveTimers();
+        renderTimers();
+        
+        if (timers.length === 0 && globalInterval) {
+            clearInterval(globalInterval);
+            globalInterval = null;
+        }
+        updateEmptyState();
+    }
+
+    function updateEmptyState() {
+        if (timers.length === 0) {
+            emptyState.style.display = 'block';
+        } else {
+            emptyState.style.display = 'none';
+        }
+    }
+
+    function renderTimers() {
+        updateEmptyState();
+        timersContainer.innerHTML = '';
+        
+        timers.forEach(timer => {
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col items-center text-center transition-all relative overflow-hidden ' + 
+                            (timer.isFinished ? 'border-emerald-200 bg-emerald-50 shadow-[0_8px_30px_rgb(16,185,129,0.15)]' : 'shadow-[0_4px_20px_rgb(0,0,0,0.03)]');
+            card.id = `card-${timer.id}`;
+            
+            if(timer.isFinished) {
+                const accentBar = document.createElement('div');
+                accentBar.className = 'absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-emerald-400';
+                card.appendChild(accentBar);
+            }
+
+            const nameEl = document.createElement('div');
+            nameEl.className = 'font-bold text-lg text-slate-900 mb-2 truncate w-full';
+            nameEl.innerText = timer.deviceName;
+            
+            const displayEl = document.createElement('div');
+            displayEl.className = 'text-4xl font-mono font-bold tracking-widest my-4 ' + (timer.isFinished ? 'text-emerald-600' : 'text-slate-800');
+            displayEl.id = `display-${timer.id}`;
+            
+            const statusEl = document.createElement('div');
+            statusEl.className = 'text-xs font-semibold px-3 py-1 rounded-full mb-6 ' + (timer.isFinished ? 'bg-emerald-200 text-emerald-800' : 'bg-slate-100 text-slate-600');
+            statusEl.id = `status-${timer.id}`;
+            statusEl.innerText = `Target: ${timer.originalDuration} ${timer.originalUnit}`;
+
+            const buttonsEl = document.createElement('div');
+            buttonsEl.className = 'w-full flex gap-3 mt-auto';
+
+            if (timer.isFinished) {
+                displayEl.innerText = "00:00:00";
+                statusEl.innerText = "Selesai!";
+                
+                const btnSave = document.createElement('button');
+                btnSave.className = 'flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-sm';
+                btnSave.innerText = 'Catat';
+                btnSave.onclick = () => saveRecord(timer.id, btnSave);
+                
+                const btnDismiss = document.createElement('button');
+                btnDismiss.className = 'flex-1 py-2.5 px-4 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl transition-all';
+                btnDismiss.innerText = 'Batal';
+                btnDismiss.onclick = () => removeTimer(timer.id);
+                
+                buttonsEl.appendChild(btnSave);
+                buttonsEl.appendChild(btnDismiss);
+            } else {
+                displayEl.innerText = "--:--:--"; 
+                statusEl.innerText = "Berjalan...";
+                
+                const btnCancel = document.createElement('button');
+                btnCancel.className = 'w-full py-2.5 px-4 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-xl transition-all';
+                btnCancel.innerText = 'Batalkan';
+                btnCancel.onclick = () => removeTimer(timer.id);
+                
+                buttonsEl.appendChild(btnCancel);
+            }
+
+            card.appendChild(nameEl);
+            card.appendChild(displayEl);
+            card.appendChild(statusEl);
+            card.appendChild(buttonsEl);
+            
+            timersContainer.appendChild(card);
+        });
+        
+        tickClock();
+    }
+
+    function startGlobalClock() {
+        if (!globalInterval && timers.length > 0) {
+            globalInterval = setInterval(tickClock, 1000);
+        }
+    }
+
+    function tickClock() {
+        let needsRender = false;
+        const now = Date.now();
+
+        timers.forEach(timer => {
+            if (timer.isFinished) return;
+            
+            const remainMs = timer.endTime - now;
+            const displayEl = document.getElementById(`display-${timer.id}`);
+            
+            if (remainMs <= 0) {
+                timer.isFinished = true;
+                needsRender = true;
+                
+                if (!timer.notified) {
+                    timer.notified = true;
+                    
+                    // Show centered modal
+                    showModal(timer.deviceName);
+
+                    if (Notification.permission === "granted") {
+                        new Notification("Waktu Penggunaan Habis!", {
+                            body: `Alat ${timer.deviceName} telah selesai digunakan.`,
+                            icon: '/favicon.ico'
+                        });
+                    } else if (Notification.permission !== "denied") {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === "granted") {
+                                new Notification("Waktu Habis", { body: `Alat ${timer.deviceName} selesai.` });
+                            }
+                        });
+                    }
+                }
+            } else {
+                if (displayEl) {
+                    const totalS = Math.floor(remainMs / 1000);
+                    const h = String(Math.floor(totalS / 3600)).padStart(2, '0');
+                    const m = String(Math.floor((totalS % 3600) / 60)).padStart(2, '0');
+                    const s = String(totalS % 60).padStart(2, '0');
+                    displayEl.innerText = `${h}:${m}:${s}`;
+                }
+            }
+        });
+
+        if (needsRender) {
+            saveTimers();
+            renderTimers();
+        }
+    }
+
+    async function saveRecord(timerId, btnElement) {
+        const timer = timers.find(t => t.id === timerId);
+        if (!timer) return;
+
+        const oldText = btnElement.innerText;
+        btnElement.innerText = '...';
+        btnElement.disabled = true;
+
+        try {
+            const response = await fetch('{{ route('reminder.store') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    device_id: timer.deviceId,
+                    jam_pemakaian: timer.hoursForLog
+                })
+            });
+
+            const result = await response.json();
+            
+            if (response.ok) {
+                removeTimer(timerId);
+            } else {
+                alert('Gagal: ' + (result.message || 'Terjadi kesalahan.'));
+                btnElement.innerText = oldText;
+                btnElement.disabled = false;
+            }
+        } catch (error) {
+            alert('Kesalahan jaringan. Gagal menghubungi server.');
+            btnElement.innerText = oldText;
+            btnElement.disabled = false;
+        }
+    }
+});
+</script>
