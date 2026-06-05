@@ -21,14 +21,33 @@ class SavingTargetController extends Controller
             ->whereBetween('tanggal', [$monthStart, $monthEnd])
             ->sum('total_kwh');
 
-        $batasBoros = $user->getBatasBorosKwh();
-
-        $targetKwh   = null;
+        $batasBoros   = $user->getBatasBorosKwh();
+        $targetKwh    = null;
         $savingStatus = null;
+        $progressData = null;
 
         if ($user->target_hemat !== null) {
             $targetKwh    = $batasBoros * (1 - ($user->target_hemat / 100));
             $savingStatus = $monthUsage <= $targetKwh ? 'tercapai' : 'melebihi';
+
+            $realisasiPct = $targetKwh > 0
+                ? min(round(($monthUsage / $targetKwh) * 100, 1), 150)
+                : 0;
+
+            $sisaKwh = $targetKwh - $monthUsage;
+
+            $barColor = match (true) {
+                $realisasiPct <= 60  => 'success',
+                $realisasiPct <= 85  => 'warning',
+                default              => 'danger',
+            };
+
+            $progressData = [
+                'realisasi_pct' => $realisasiPct,
+                'sisa_kwh'      => $sisaKwh,
+                'bar_color'     => $barColor,
+                'target_kwh'    => $targetKwh,
+            ];
         }
 
         return view('saving-target.index', compact(
@@ -36,7 +55,8 @@ class SavingTargetController extends Controller
             'monthUsage',
             'batasBoros',
             'targetKwh',
-            'savingStatus'
+            'savingStatus',
+            'progressData'
         ));
     }
 
