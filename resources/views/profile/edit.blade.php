@@ -89,7 +89,7 @@
                             <label for="password" class="block text-sm font-semibold text-slate-700">Password Baru</label>
                             <input id="password" type="password" name="password"
                                    class="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium @error('password') border-red-400 @enderror"
-                                   placeholder="Minimal 8 karakter">
+                                   placeholder="Minimal 6 karakter">
                             @error('password')
                                 <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
                             @enderror
