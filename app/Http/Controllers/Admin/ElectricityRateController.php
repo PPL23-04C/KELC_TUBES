@@ -22,7 +22,7 @@ class ElectricityRateController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'daya_va' => 'required|integer|unique:electricity_rates,daya_va',
+            'daya_va' => 'required|integer|in:450,900,1300,2200,3500,5500,6600',
             'tarif_per_kwh' => 'required|numeric|min:0',
         ]);
 
@@ -39,7 +39,7 @@ class ElectricityRateController extends Controller
     public function update(Request $request, ElectricityRate $electricity_rate)
     {
         $data = $request->validate([
-            'daya_va' => 'required|integer|unique:electricity_rates,daya_va,'.$electricity_rate->id,
+            'daya_va' => 'required|integer|in:450,900,1300,2200,3500,5500,6600|unique:electricity_rates,daya_va,'.$electricity_rate->id,
             'tarif_per_kwh' => 'required|numeric|min:0',
         ]);
 
