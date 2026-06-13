@@ -75,6 +75,7 @@ class RecommendationController extends Controller
                 $biayaBulan   = round($kwh * $tariff);
 
                 return [
+                    'device_id'   => $device->id,
                     'nama'        => $device->nama_device,
                     'daya_watt'   => $device->daya_watt,
                     'jumlah_unit' => $device->jumlah_unit,
@@ -102,6 +103,12 @@ class RecommendationController extends Controller
 
         $co2Factor = (float) config('constants.co2_factor');
 
+        $tipChecklists = $user->recommendations()
+            ->where('tipe', 'checklist')
+            ->pluck('pesan')
+            ->mapWithKeys(fn($item) => [$item => true])
+            ->toArray();
+
         return view('recommendations.index', compact(
             'hasDevice',
             'monthUsage',
@@ -112,8 +119,41 @@ class RecommendationController extends Controller
             'tariff',
             'co2Factor',
             'dayaVa',
-            'resolvedTier'
+            'resolvedTier',
+            'tipChecklists'
         ));
+    }
+
+    public function toggleTipChecklist(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'device_id' => 'required',
+            'tip_index' => 'required|integer',
+        ]);
+
+        $user = auth()->user();
+        $key = "{$request->device_id}_{$request->tip_index}";
+
+        $existing = $user->recommendations()
+            ->where('tipe', 'checklist')
+            ->where('pesan', $key)
+            ->first();
+
+        if ($existing) {
+            $existing->delete();
+            $isCompleted = false;
+        } else {
+            $user->recommendations()->create([
+                'tipe' => 'checklist',
+                'pesan' => $key,
+            ]);
+            $isCompleted = true;
+        }
+
+        return response()->json([
+            'success' => true,
+            'is_completed' => $isCompleted,
+        ]);
     }
 
     // ─────────────────────────────────────────────────────────────────────

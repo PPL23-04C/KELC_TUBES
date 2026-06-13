@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/analysis', [AnalysisController::class, 'store'])->name('analysis.store');
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
     Route::get('/recommendations', [RecommendationController::class, 'index'])->name('recommendations.index');
+    Route::post('/recommendations/toggle-checklist', [RecommendationController::class, 'toggleTipChecklist'])->name('recommendations.toggleTipChecklist');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboards.index');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
