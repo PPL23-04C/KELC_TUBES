@@ -38,7 +38,7 @@
 
     <!-- Hero Saving Banner -->
     @if(auth()->user()->target_hemat !== null)
-        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-8 relative overflow-hidden group">
+        <div id="w2s0ed" class="bg-white rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 mb-8 relative overflow-hidden group">
             <div class="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
                 <i data-lucide="leaf" class="w-40 h-40 text-emerald-600"></i>
             </div>
