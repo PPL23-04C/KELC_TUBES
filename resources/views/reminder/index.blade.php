@@ -9,6 +9,38 @@
         0% { transform: scale(0.9); opacity: 0; }
         100% { transform: scale(1); opacity: 1; }
     }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateY(10px); opacity: 0 }
+        to { transform: translateY(0); opacity: 1 }
+    }
+
+    .toast {
+        animation: modalPop 0.25s ease, slideIn 0.2s ease;
+        border-radius: 12px;
+        padding: 10px 14px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        box-shadow: 0 8px 24px rgba(15,23,42,0.12);
+        background: white;
+        color: #0f172a;
+    }
+
+    .toast .icon {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border-radius: 9px;
+        background: linear-gradient(135deg,#10b981,#06b6d4);
+        color: white;
+    }
 </style>
 
 <div class="max-w-5xl mx-auto space-y-8">
@@ -88,9 +120,7 @@
 <!-- Modal Notifikasi Timer Habis -->
 <div id="timer-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
     <div style="animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);" class="bg-white p-8 rounded-3xl w-11/12 max-w-sm text-center shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 to-emerald-400"></div>
-        <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i data-lucide="bell-ringing" class="w-10 h-10 text-emerald-500"></i>
+        <div class="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4 pulse">
         </div>
         <h2 class="text-2xl font-bold text-slate-900 mb-2">Waktu Habis!</h2>
         <p class="text-slate-500 text-sm mb-6 leading-relaxed">
@@ -103,6 +133,9 @@
         </button>
     </div>
 </div>
+
+<!-- Toast container -->
+<div id="toast-container" style="position: fixed; right: 20px; bottom: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 12px;"></div>
 
 <!-- Audio Notifikasi -->
 <audio id="timerSound" preload="auto">
@@ -161,7 +194,44 @@ document.addEventListener('DOMContentLoaded', function() {
             if(window.lucide) {
                 window.lucide.createIcons();
             }
+            // show a quick toast for visibility
+            showToast(`${deviceName} telah selesai`);
         }
+    }
+
+    function showToast(message) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const el = document.createElement('div');
+        el.className = 'toast';
+
+        const iconWrap = document.createElement('div');
+        iconWrap.className = 'icon';
+        iconWrap.style.display = 'grid';
+        iconWrap.style.placeItems = 'center';
+
+        const icon = document.createElement('i');
+        icon.setAttribute('data-lucide', 'timer');
+        icon.className = 'w-5 h-5 text-white';
+        iconWrap.appendChild(icon);
+
+        const text = document.createElement('div');
+        text.style.fontWeight = '600';
+        text.style.fontSize = '14px';
+        text.innerText = message;
+
+        el.appendChild(iconWrap);
+        el.appendChild(text);
+        container.appendChild(el);
+
+        if(window.lucide) window.lucide.createIcons();
+
+        setTimeout(() => {
+            el.style.transition = 'opacity 0.35s, transform 0.35s';
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(10px)';
+            setTimeout(() => el.remove(), 400);
+        }, 3500);
     }
 
     // Load from local storage
@@ -253,6 +323,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const accentBar = document.createElement('div');
                 accentBar.className = 'absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-emerald-500 to-emerald-400';
                 card.appendChild(accentBar);
+
+                const topIcon = document.createElement('div');
+                topIcon.style.width = '56px';
+                topIcon.style.height = '56px';
+                topIcon.style.display = 'grid';
+                topIcon.style.placeItems = 'center';
+                topIcon.innerHTML = '<i data-lucide="timer" class="w-6 h-6 text-emerald-500"></i>';
+                card.appendChild(topIcon);
             }
 
             const nameEl = document.createElement('div');
