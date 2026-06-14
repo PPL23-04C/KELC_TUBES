@@ -730,9 +730,17 @@ const RARITY_STYLE = {
 /* localStorage keys */
 const LS_UNLOCKED = 'wattcare_achievements_v2';
 const LS_SEEN     = 'wattcare_achievements_seen_v2';
+const LS_TOASTED  = 'wattcare_achievements_toasted_v2';
 
 let unlockedIds = new Set(JSON.parse(localStorage.getItem(LS_UNLOCKED) || '[]'));
 let seenIds     = new Set(JSON.parse(localStorage.getItem(LS_SEEN)     || '[]'));
+let toastedIds;
+if (localStorage.getItem(LS_TOASTED)) {
+    toastedIds = new Set(JSON.parse(localStorage.getItem(LS_TOASTED)));
+} else {
+    toastedIds = new Set(JSON.parse(localStorage.getItem(LS_UNLOCKED) || '[]'));
+    localStorage.setItem(LS_TOASTED, JSON.stringify([...toastedIds]));
+}
 let justUnlockedIds = new Set(); // baru unlock di sesi ini, belum diseen
 let activeFilter = 'all';
 
@@ -769,24 +777,34 @@ function checkAchievements(showToast = false) {
     const stats  = getStats();
     const earned = evaluateUnlocked(stats);
 
-    // Find newly unlocked
+    // Find newly unlocked (for UI badge & modal state)
     const newOnes = [...earned].filter(id => !unlockedIds.has(id));
     newOnes.forEach(id => {
         unlockedIds.add(id);
         justUnlockedIds.add(id);
     });
 
+    // Find newly toasted (achievements that are completed but haven't been toasted yet)
+    const newToasts = [...earned].filter(id => !toastedIds.has(id));
+    newToasts.forEach(id => {
+        toastedIds.add(id);
+    });
+
     if (newOnes.length > 0) {
         localStorage.setItem(LS_UNLOCKED, JSON.stringify([...unlockedIds]));
-        if (showToast) {
-            // show toast for each new one (with slight delay between)
-            newOnes.forEach((id, i) => {
-                setTimeout(() => showAchievementToast(id), i * 600);
-            });
-        }
         // Pulse button
         const btn = document.getElementById('achievement-btn');
         if (btn) btn.classList.add('has-new');
+    }
+
+    if (newToasts.length > 0) {
+        localStorage.setItem(LS_TOASTED, JSON.stringify([...toastedIds]));
+        if (showToast) {
+            // show toast for each new one (with slight delay between)
+            newToasts.forEach((id, i) => {
+                setTimeout(() => showAchievementToast(id), i * 600);
+            });
+        }
     }
 
     updateButtonBadge();
@@ -931,38 +949,73 @@ function showAchievementToast(achId) {
     const ach = ACHIEVEMENTS.find(a => a.id === achId);
     if (!ach) return;
 
-    const existing = document.getElementById('ach-toast');
-    if (existing) existing.remove();
+    // Get or create toast container
+    let container = document.getElementById('ach-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'ach-toast-container';
+        container.style.cssText = `
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 320px;
+            width: calc(100% - 48px);
+            pointer-events: none;
+        `;
+        document.body.appendChild(container);
+    }
 
     const toast = document.createElement('div');
-    toast.id = 'ach-toast';
     toast.style.cssText = `
-        position:fixed;bottom:24px;right:24px;z-index:9999;
-        background:white;border-radius:20px;padding:14px 18px;
-        box-shadow:0 10px 40px rgba(0,0,0,0.15),0 2px 8px rgba(0,0,0,0.08);
-        border:1.5px solid #fde68a;max-width:300px;
-        animation:toast-in 0.45s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        background: white;
+        border-radius: 20px;
+        padding: 14px 18px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08);
+        border: 1.5px solid #fde68a;
+        pointer-events: auto;
+        animation: toast-in 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     `;
     toast.innerHTML = `
         <div style="display:flex;align-items:center;gap:12px;">
             <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,${ach.rfrom},${ach.rto});display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.15);">${ach.icon}</div>
-            <div>
+            <div style="flex: 1; min-width: 0;">
                 <div style="font-size:10px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:.06em;">🎉 Achievement Terbuka!</div>
-                <div style="font-size:14px;font-weight:700;color:#1e293b;margin-top:2px;">${ach.title}</div>
-                <div style="font-size:11px;color:#64748b;margin-top:1px;">${ach.desc}</div>
+                <div style="font-size:14px;font-weight:700;color:#1e293b;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ach.title}</div>
+                <div style="font-size:11px;color:#64748b;margin-top:1px;line-height:1.2;">${ach.desc}</div>
             </div>
         </div>
     `;
+
     if (!document.getElementById('toast-style')) {
         const s = document.createElement('style');
         s.id = 'toast-style';
-        s.textContent = '@keyframes toast-in{from{opacity:0;transform:translateY(30px) scale(0.9)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes toast-out{from{opacity:1}to{opacity:0;transform:translateY(20px)}}';
+        s.textContent = `
+            @keyframes toast-in {
+                from { opacity: 0; transform: translateY(30px) scale(0.9); }
+                to { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            @keyframes toast-out {
+                from { opacity: 1; transform: scale(1); }
+                to { opacity: 0; transform: translateY(20px) scale(0.9); }
+            }
+        `;
         document.head.appendChild(s);
     }
-    document.body.appendChild(toast);
+
+    container.appendChild(toast);
+
     setTimeout(() => {
         toast.style.animation = 'toast-out 0.3s ease forwards';
-        setTimeout(() => toast.remove(), 300);
+        setTimeout(() => {
+            toast.remove();
+            if (container.childElementCount === 0) {
+                container.remove();
+            }
+        }, 300);
     }, 4500);
 }
 
@@ -996,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCounters();
     initializeCompletedStates();
     setupEventListeners();
-    checkAchievements(false); // restore state on load, no toast
+    checkAchievements(true); // check & toast on load
 
     function initializeCompletedStates() {
         document.querySelectorAll('.tip-item.completed').forEach(item => {
