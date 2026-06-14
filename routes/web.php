@@ -38,18 +38,19 @@ Route::middleware('auth')->group(function () {
     Route::post('/analysis', [AnalysisController::class, 'store'])->name('analysis.store');
     Route::get('/history', [HistoryController::class, 'index'])->name('history.index');
     Route::get('/recommendations', [RecommendationController::class, 'index'])->name('recommendations.index');
+    Route::post('/recommendations/toggle-tip-checklist', [RecommendationController::class, 'toggleTipChecklist'])->name('recommendations.toggleTipChecklist');
     Route::post('/recommendations/toggle-checklist', [RecommendationController::class, 'toggleTipChecklist'])->name('recommendations.toggleTipChecklist');
     Route::get('/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboards.index');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    
+
     Route::get('/saving-target', [SavingTargetController::class, 'index'])->name('saving-target.index');
     Route::post('/saving-target', [SavingTargetController::class, 'store'])->name('saving-target.store');
     Route::delete('/saving-target', [SavingTargetController::class, 'destroy'])->name('saving-target.destroy');
-    
+
     Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
     Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
-    
+
     Route::get('/reminder', [ReminderController::class, 'index'])->name('reminder.index');
     Route::post('/reminder', [ReminderController::class, 'store'])->name('reminder.store');
 

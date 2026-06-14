@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Device;
 use App\Models\MonitoringLog;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 
@@ -18,9 +20,10 @@ class RecommendationController extends Controller
         $now       = Carbon::now();
         $hasDevice = $user->devices()->exists();
         $dayaVa    = (int) $user->daya_va;
-        
+
         // Tarif dinamis per VA user
         $tariff = getTarifListrik($dayaVa);
+        $tipChecklists = session()->get("recommendation_tip_checklists.user_{$user->id}", []);
 
         // ── Data bulanan untuk banner status ─────────────────────────────
         $monthStart = $now->copy()->startOfMonth();
@@ -565,5 +568,28 @@ class RecommendationController extends Controller
         }
 
         return $tips;
+    }
+
+    public function toggleTipChecklist(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'device_id' => 'required|integer',
+            'tip_index' => 'required|integer|min:0',
+        ]);
+
+        $sessionKey = "recommendation_tip_checklists.user_{$user->id}";
+        $tipChecklists = session()->get($sessionKey, []);
+        $checklistKey = "{$validated['device_id']}_{$validated['tip_index']}";
+        $isCompleted = !($tipChecklists[$checklistKey] ?? false);
+
+        $tipChecklists[$checklistKey] = $isCompleted;
+        session()->put($sessionKey, $tipChecklists);
+
+        return response()->json([
+            'success' => true,
+            'is_completed' => $isCompleted,
+        ]);
     }
 }
