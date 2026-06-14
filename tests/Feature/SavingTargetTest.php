@@ -97,7 +97,7 @@ class SavingTargetTest extends TestCase
         $response = $this->actingAs($user)->get(route('dashboard'));
 
         $response->assertOk();
-        $response->assertSee('Atur Target Penghematan Bulanan Anda!');
+        $response->assertSee('Mulai Hemat Energi Hari Ini!');
         $response->assertDontSee('id="w2s0ed"', false);
     }
 
@@ -112,10 +112,12 @@ class SavingTargetTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('id="w2s0ed"', false);
-        $response->assertSee('VA Rumah: 1300 VA', false);
-        $response->assertSee('Kategori Boros: 210 kWh', false);
-        $response->assertSee('Target Hemat: 20%', false);
-        $response->assertSee('Target Maksimal Pemakaian: 168 kWh/bulan', false);
+        $response->assertSee('Target Penghematan Bulan Ini');
+        $response->assertSee('Target Maksimal');
+        $response->assertSee('Batas Boros');
+        $response->assertSee('168');
+        $response->assertSee('210');
+        $response->assertSee('On Track');
         $response->assertSee(route('recommendations.index'));
     }
 }
