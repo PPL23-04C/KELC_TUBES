@@ -296,84 +296,154 @@
                     <!-- Simulasi Penghematan -->
                     <div class="mb-6">
                         <button
-                            class="btn btn-outline-primary btn-sm"
+                            class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-all shadow-sm shadow-blue-200 hover:shadow-md active:scale-95"
                             type="button"
                             @click="simulatorOpen = !simulatorOpen"
                             :aria-expanded="simulatorOpen.toString()"
                             aria-controls="simulator-{{ $i }}"
                         >
-                            <i class="bi bi-graph-up me-2"></i>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+                            </svg>
                             Simulasi Penghematan
                         </button>
 
                         <div x-show="simulatorOpen" x-collapse x-cloak class="mt-4" id="simulator-{{ $i }}">
-                            <div class="card card-body border-0 shadow-sm p-4">
-                                <div class="row gy-3">
-                                    <div class="col-12 col-md-4">
-                                        <div class="small text-muted mb-2">Penggunaan saat ini</div>
-                                        <div class="h5 mb-0" x-text="formatNumber(currentHours, 1) + ' jam/hari'"></div>
+                            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-5 md:p-6 shadow-sm">
+                                
+                                <!-- Slider Section (Atas) -->
+                                <div class="space-y-4">
+                                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-800">Simulasikan Durasi Pemakaian Harian</h4>
+                                            <p class="text-xs text-slate-500 mt-0.5">Pemakaian saat ini: <span class="font-bold text-slate-700" x-text="formatNumber(currentHours, 1) + ' jam/hari'"></span></p>
+                                        </div>
+                                        <div class="flex items-baseline gap-1 bg-white px-3 py-1.5 rounded-xl border border-slate-200/60 shadow-sm self-start">
+                                            <span class="text-lg font-bold text-blue-600" x-text="formatNumber(simulatedHours, 1)"></span>
+                                            <span class="text-xs text-slate-500 font-semibold">jam/hari</span>
+                                        </div>
                                     </div>
-                                    <div class="col-12 col-md-8">
-                                        <div class="small text-muted mb-2">Simulasikan menjadi</div>
-                                        <div class="d-flex align-items-center gap-3">
-                                            <input
-                                                type="range"
-                                                class="form-range flex-grow-1"
-                                                min="0"
-                                                :max="currentHours"
-                                                step="0.5"
-                                                x-model.number="simulatedHours"
-                                            >
-                                            <div class="fw-semibold text-dark" x-text="formatNumber(simulatedHours, 1) + ' jam'"></div>
+
+                                    <!-- Range Slider & Ruler -->
+                                    <div class="relative pt-2">
+                                        <input
+                                            type="range"
+                                            class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                            min="0"
+                                            max="24"
+                                            step="0.5"
+                                            x-model.number="simulatedHours"
+                                        >
+                                        <!-- Ruler/Ticks -->
+                                        <div class="flex justify-between text-[10px] text-slate-400 font-bold px-1 mt-2">
+                                            <span>0 jam</span>
+                                            <span>6 jam</span>
+                                            <span>12 jam</span>
+                                            <span>18 jam</span>
+                                            <span>24 jam</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Persentase & Ringkasan di Bawah Slider -->
+                                    <div class="flex items-center gap-2 bg-white rounded-xl p-3.5 border border-slate-200/60 text-xs">
+                                        <template x-if="percentChange() > 0">
+                                            <span class="inline-flex items-center gap-1 font-bold text-emerald-600 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7-7-7 7"/>
+                                                </svg>
+                                                <span x-text="formatNumber(percentChange(), 1) + '%'"></span> Hemat
+                                            </span>
+                                        </template>
+                                        <template x-if="percentChange() < 0">
+                                            <span class="inline-flex items-center gap-1 font-bold text-red-600 shrink-0">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 10l-7 7-7-7"/>
+                                                </svg>
+                                                <span x-text="formatNumber(Math.abs(percentChange()), 1) + '%'"></span> Lebih Boros
+                                            </span>
+                                        </template>
+                                        <template x-if="percentChange() == 0">
+                                            <span class="font-bold text-slate-500 shrink-0">Tidak ada perubahan</span>
+                                        </template>
+                                        <span class="text-slate-300 font-medium shrink-0">|</span>
+                                        <span class="text-slate-500" x-text="percentChange() > 0 ? 'Mengurangi durasi pemakaian akan memotong konsumsi bulanan Anda.' : (percentChange() < 0 ? 'Menambah durasi pemakaian meningkatkan konsumsi listrik Anda.' : 'Geser slider ke kiri atau kanan untuk menyimulasikan pemakaian baru.')"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Cards Section (Bawah) -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                                    
+                                    <!-- Card 1: Hemat kWh/bulan -->
+                                    <div class="bg-white rounded-2xl p-4 border shadow-sm flex flex-col justify-between min-h-[90px] transition-all"
+                                         :class="diffKwh() >= 0 ? 'border-emerald-100 bg-emerald-50/5' : 'border-red-100 bg-red-50/5'">
+                                        <span class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Hemat kWh/bulan</span>
+                                        <div class="flex items-baseline gap-1 mt-2">
+                                            <span class="text-lg font-bold transition-colors"
+                                                  :class="diffKwh() >= 0 ? 'text-emerald-600' : 'text-red-600'"
+                                                  x-text="formatNumber(diffKwh(), 1) + ' kWh'"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Card 2: Hemat biaya/bulan -->
+                                    <div class="bg-white rounded-2xl p-4 border shadow-sm flex flex-col justify-between min-h-[90px] transition-all"
+                                         :class="diffCost() >= 0 ? 'border-emerald-100 bg-emerald-50/5' : 'border-red-100 bg-red-50/5'">
+                                        <span class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Hemat biaya/bulan</span>
+                                        <div class="mt-2">
+                                            <span class="text-lg font-bold transition-colors"
+                                                  :class="diffCost() >= 0 ? 'text-emerald-600' : 'text-red-600'"
+                                                  x-text="formatCurrency(diffCost())"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Card 3: CO2 berkurang -->
+                                    <div class="bg-white rounded-2xl p-4 border shadow-sm flex flex-col justify-between min-h-[90px] transition-all"
+                                         :class="diffCo2() >= 0 ? 'border-emerald-100 bg-emerald-50/5' : 'border-red-100 bg-red-50/5'">
+                                        <span class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">CO₂ berkurang</span>
+                                        <div class="flex items-baseline gap-1 mt-2">
+                                            <span class="text-lg font-bold transition-colors"
+                                                  :class="diffCo2() >= 0 ? 'text-emerald-600' : 'text-red-600'"
+                                                  x-text="formatNumber(diffCo2(), 1) + ' kg'"></span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Card 4: Penurunan konsumsi -->
+                                    <div class="bg-white rounded-2xl p-4 border shadow-sm flex flex-col justify-between min-h-[90px] transition-all"
+                                         :class="percentChange() >= 0 ? 'border-emerald-100 bg-emerald-50/5' : 'border-red-100 bg-red-50/5'">
+                                        <span class="text-slate-500 text-[10px] font-bold uppercase tracking-wider">Penurunan konsumsi</span>
+                                        <div class="flex items-baseline gap-1 mt-2">
+                                            <span class="text-lg font-bold transition-colors"
+                                                  :class="percentChange() >= 0 ? 'text-emerald-600' : 'text-red-600'"
+                                                  x-text="formatNumber(percentChange(), 1) + '%'"></span>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Progress bar visualisasi sebelum & sesudah -->
+                                <div class="mt-6 space-y-3 pt-4 border-t border-slate-200/60">
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                            <span>Konsumsi Awal</span>
+                                            <span>100%</span>
+                                        </div>
+                                        <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                                            <div class="h-full bg-slate-400 rounded-full" style="width: 100%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                            <span>Konsumsi Simulasi</span>
+                                            <span :class="percentChange() >= 0 ? 'text-emerald-600 font-bold' : 'text-red-600 font-bold'"
+                                                  x-text="formatNumber(Math.max(0, 100 - percentChange()), 1) + '%'"></span>
+                                        </div>
+                                        <div class="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
+                                            <div class="h-full rounded-full transition-all duration-300"
+                                                 :class="percentChange() >= 0 ? 'bg-emerald-500' : 'bg-red-500'"
+                                                 :style="`width: ${Math.max(0, Math.min(100, 100 - percentChange()))}%`"></div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-2 mt-4">
-                                    <div class="col">
-                                        <div class="card border-success-subtle bg-success bg-opacity-10 h-100">
-                                            <div class="card-body p-2 d-flex flex-column justify-content-center">
-                                                <div class="text-muted small mb-1">Hemat kWh/bulan</div>
-                                                <div class="text-success fw-bold lh-1" style="font-size: 0.95rem; word-break: break-word;" x-text="formatNumber(diffKwh(), 1) + ' kWh'"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="card border-success-subtle bg-success bg-opacity-10 h-100">
-                                            <div class="card-body p-2 d-flex flex-column justify-content-center">
-                                                <div class="text-muted small mb-1">Hemat biaya/bulan</div>
-                                                <div class="text-success fw-bold lh-1" style="font-size: 0.85rem; word-break: break-word; min-height: 1.5rem;" x-text="formatCurrency(diffCost())"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="card border-success-subtle bg-success bg-opacity-10 h-100">
-                                            <div class="card-body p-2 d-flex flex-column justify-content-center">
-                                                <div class="text-muted small mb-1">CO₂ berkurang</div>
-                                                <div class="text-success fw-bold lh-1" style="font-size: 0.95rem; word-break: break-word;" x-text="formatNumber(diffCo2(), 1) + ' kg'"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col">
-                                        <div class="card border-success-subtle bg-success bg-opacity-10 h-100">
-                                            <div class="card-body p-2 d-flex flex-column justify-content-center">
-                                                <div class="text-muted small mb-1">Penurunan konsumsi</div>
-                                                <div class="text-success fw-bold lh-1" style="font-size: 0.95rem; word-break: break-word;" x-text="formatNumber(percentChange(), 1) + '%' "></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mt-4">
-                                    <div class="mb-2 small text-muted">Sebelum</div>
-                                    <div class="progress" style="height: .75rem;">
-                                        <div class="progress-bar bg-secondary" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
-                                    </div>
-                                    <div class="mt-3 mb-2 small text-muted">Sesudah</div>
-                                    <div class="progress" style="height: .75rem;">
-                                        <div class="progress-bar bg-success" role="progressbar" :style="`width: ${Math.max(0, Math.min(100, 100 - percentChange()))}%`" aria-valuemin="0" aria-valuemax="100" x-text="formatNumber(Math.max(0, 100 - percentChange()), 1) + '%'" ></div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
