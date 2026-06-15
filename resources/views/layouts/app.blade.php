@@ -34,7 +34,7 @@
                     </button>
                     <div>
                         <h2 class="text-xl font-semibold text-slate-800">@yield('page-title')</h2>
-                        <div class="text-sm text-slate-500 hidden sm:block">Pantau penggunaan listrik Anda secara real-time.</div>
+                        <div class="text-sm text-slate-500 hidden sm:block"> Kelola pengguna, tarif listrik, dan data sistem secara terpusat</div>
                     </div>
                 </div>
                 <div class="flex items-center gap-4 flex-wrap">

@@ -16,7 +16,7 @@
             </div>
             <h2 class="text-2xl font-bold mb-1">👋 Selamat datang, {{ auth()->user()->name }}</h2>
             <p class="text-slate-300 text-sm leading-relaxed">
-                Gunakan menu sidebar untuk mengelola tarif listrik, pengguna, dan memantau konsumsi.
+            Gunakan menu sidebar untuk mengelola pengguna dan tarif listrik pada sistem WattCare.
             </p>
         </div>
     </div>
